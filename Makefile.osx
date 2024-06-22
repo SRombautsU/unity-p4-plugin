@@ -4,8 +4,8 @@ CC = gcc
 CXX = g++
 AR = ar
 
-CXXFLAGS = -O2 -arch x86_64 -mmacosx-version-min=10.11
-LDFLAGS = -arch x86_64 -lstdc++ -mmacosx-version-min=10.11
+CXXFLAGS += -O2 -arch x86_64 -mmacosx-version-min=10.11 -fptrauth-objc-class-ro
+LDFLAGS += -arch x86_64 -lstdc++ -mmacosx-version-min=10.11 -Wl,-ld_classic
 PLATFORM = OSXx64
 
 COMMON_MODULES = $(COMMON_SRCS:.c=.o)
@@ -50,10 +50,10 @@ P4Plugin/Source/%.o : P4Plugin/Source/%.mm $(COMMON_INCLS) $(P4PLUGIN_INCLS)
 	$(CXX) $(CXXFLAGS) $(P4PLUGIN_INCLUDE) -c $< -o $@
 
 $(TESTSERVER_TARGET): $(COMMON_MODULES) $(TESTSERVER_MODULES)
-	$(CXX) -g $(LDFLAGS) -o $@ $^
+	$(CXX) -g $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 $(P4PLUGIN_TARGET): $(COMMON_MODULES) $(P4PLUGIN_MODULES)
-	$(CXX) $(LDFLAGS) -o $@ -framework Cocoa $^ -L./P4Plugin/Source/r19.1/lib/osx64 $(P4PLUGIN_LINK)
+	$(CXX) $(LDFLAGS) -o $@ -framework Cocoa -framework Security $^ $(LDLIBS) $(P4PLUGIN_LINK)
 
 clean:
 	rm -f Build/*.* $(COMMON_MODULES) $(P4PLUGIN_MODULES) $(TESTSERVER_MODULES)
