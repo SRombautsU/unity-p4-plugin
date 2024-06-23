@@ -1,0 +1,138 @@
+name: CI
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  build-windows:
+    name: Build on Windows
+    runs-on: windows-latest
+    steps:
+    - name: Check Out Repository
+      uses: actions/checkout@v4
+    - name: Download External Dependencies
+      run: |
+        set -x
+
+        curl -fsSL -o 'C:\openssl.tar.gz' 'https://www.openssl.org/source/old/1.1.1/openssl-1.1.1w.tar.gz'
+        sha256sum -c <<<'cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8 *C:\openssl.tar.gz'
+        (cd 'C:\'; tar --force-local -xf 'C:\openssl.tar.gz')
+
+        curl -fsSL -o 'C:\p4api_win32.zip' 'https://ftp.perforce.com/perforce/r24.1/bin.ntx86/p4api_vs2022_static_openssl1.1.1.zip'
+        mkdir -p 'C:\p4api\win32'
+        (cd 'C:\p4api\win32'; unzip -q 'C:\p4api_win32.zip')
+
+        mkdir -p 'PerforceBinaries\Win_x64'
+        curl -fsSL -o 'PerforceBinaries\Win_x64\p4d.exe' 'https://ftp.perforce.com/perforce/r24.1/bin.ntx64/p4d.exe'
+        curl -fsSL -o 'PerforceBinaries\Win_x64\p4.exe' 'https://ftp.perforce.com/perforce/r24.1/bin.ntx64/p4.exe'
+      shell: bash
+    - name: Set Up Developer Command Prompt
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x86
+    - name: Install the Netwide Assembler
+      uses: ilammy/setup-nasm@v1
+    - name: Build OpenSSL
+      working-directory: C:\openssl-1.1.1w
+      run: |
+        perl Configure no-shared no-tests VC-WIN32 -DWINVER=0x0601 -D_WIN32_WINNT=0x0601
+        nmake
+        nmake install_sw
+    - name: Build
+      run: |
+        $env:INCLUDE += ";$(Resolve-Path 'C:\p4api\win32\p4api-*\include\p4\')"
+        $env:LIB += ";$(Resolve-Path 'C:\p4api\win32\p4api-*\lib');${env:ProgramFiles(x86)}\OpenSSL\lib"
+
+        msbuild VersionControl.sln /t:Clean /t:P4Plugin /t:TestServer /p:Configuration=Release /p:Platform=Win32 /p:UseEnv=true
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: unity-p4-plugin-ntx86
+        path: Build/Win32/PerforcePlugin.exe
+    - name: Test
+      run: |
+        perl build.pl -test
+  build-linux:
+    name: Build on Linux
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Check Out Repository
+      uses: actions/checkout@v4
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgtk-3-dev libssl-dev
+    - name: Download External Dependencies
+      run: |
+        set -x
+
+        curl -fsSL -o /tmp/p4api_linux64.tgz 'https://ftp.perforce.com/perforce/r24.1/bin.linux26x86_64/p4api-glibc2.12-openssl1.1.1.tgz'
+        tar -C /tmp -xf /tmp/p4api_linux64.tgz
+
+        mkdir -p PerforceBinaries/linux64
+        curl -fsSL -o 'PerforceBinaries/linux64/p4d' 'https://ftp.perforce.com/perforce/r24.1/bin.linux26x86_64/p4d'
+        curl -fsSL -o 'PerforceBinaries/linux64/p4' 'https://ftp.perforce.com/perforce/r24.1/bin.linux26x86_64/p4'
+        chmod +x PerforceBinaries/linux64/p4d PerforceBinaries/linux64/p4
+    - name: Build
+      run: |
+        include_dir=(/tmp/p4api-*/include/p4)
+        lib_dir=(/tmp/p4api-*/lib)
+
+        export CFLAGS="-O3 -fPIC -fexceptions -fvisibility=hidden -DLINUX -I$include_dir"
+        export CXXFLAGS="$CFLAGS"
+        export LDLIBS="-L$lib_dir"
+
+        make -f Makefile.gnu PLATFORM=linux64
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: unity-p4-plugin-linux26x86_64-glibc2.31
+        path: Build/linux64/PerforcePlugin
+    - name: Test
+      run: |
+        perl build.pl -test
+  build-macos:
+    name: Build on macOS
+    runs-on: macos-latest
+    steps:
+    - name: Check Out Repository
+      uses: actions/checkout@v4
+    - name: Download External Dependencies
+      run: |
+        set -x
+
+        curl -sSL -o /tmp/openssl.tar.gz 'https://www.openssl.org/source/old/1.1.1/openssl-1.1.1w.tar.gz'
+        shasum -a 256 -c <<<'cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8 */tmp/openssl.tar.gz'
+        tar -C /tmp -xf /tmp/openssl.tar.gz
+
+        curl -sSL -o /tmp/p4api_macos64.tgz 'https://ftp.perforce.com/perforce/r24.1/bin.macosx105x86_64/p4api-openssl1.1.1.tgz'
+        tar -C /tmp -xf /tmp/p4api_macos64.tgz
+
+        mkdir -p PerforceBinaries/OSX
+        curl -sSL -o 'PerforceBinaries/OSX/p4d' 'https://ftp.perforce.com/perforce/r24.1/bin.macosx12arm64/p4d'
+        curl -sSL -o 'PerforceBinaries/OSX/p4' 'https://ftp.perforce.com/perforce/r24.1/bin.macosx12arm64/p4'
+        chmod +x PerforceBinaries/OSX/p4d PerforceBinaries/OSX/p4
+    - name: Build OpenSSL
+      working-directory: /tmp/openssl-1.1.1w
+      run: |
+        perl Configure no-shared no-tests darwin64-x86_64-cc -mmacosx-version-min=10.11 --prefix=/usr/local/ssl/openssl@1.1-x86_64
+        make depend
+        sudo make install_sw
+    - name: Build
+      run: |
+        include_dir=(/tmp/p4api-*/include/p4)
+        lib_dir=(/tmp/p4api-*/lib)
+
+        export CFLAGS="-I$include_dir"
+        export CXXFLAGS="$CFLAGS"
+        export LDLIBS="-L$lib_dir -L/usr/local/ssl/openssl@1.1-x86_64/lib"
+
+        make -f Makefile.osx
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: unity-p4-plugin-macosx1011x86_64
+        path: Build/OSXx64/PerforcePlugin
+    - name: Test
+      run: |
+        perl build.pl -test

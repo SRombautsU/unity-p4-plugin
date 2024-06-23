@@ -1,0 +1,54 @@
+name: Release
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+permissions:
+  contents: write
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Check Out Repository
+      uses: actions/checkout@v4
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ${{ runner.temp }}
+    - name: Create Release Directories
+      working-directory: ${{ runner.temp }}
+      run: |
+        mkdir -p stage/{bin.ntx86,bin.linux26x86_64,bin.macosx1011x86_64}
+    - name: Stage Windows Release Files
+      working-directory: ${{ runner.temp }}/stage/bin.ntx86
+      env:
+        PLUGIN_VERSION: ${{ inputs.version }}
+      run: |
+        mkdir "unity-p4-plugin-${PLUGIN_VERSION}"
+        cp -rv "$RUNNER_TEMP/unity-p4-plugin-ntx86/"* "unity-p4-plugin-${PLUGIN_VERSION}"
+        zip -r unity-p4-plugin.ntx86.zip "unity-p4-plugin-${PLUGIN_VERSION}"
+    - name: Stage Linux Release Files
+      working-directory: ${{ runner.temp }}/stage/bin.linux26x86_64
+      env:
+        PLUGIN_VERSION: ${{ inputs.version }}
+      run: |
+        mkdir "unity-p4-plugin-${PLUGIN_VERSION}"
+        cp -rv "$RUNNER_TEMP/unity-p4-plugin-linux26x86_64-glibc2.31/"* "unity-p4-plugin-${PLUGIN_VERSION}"
+        tar -czf unity-p4-plugin.linux26x86_64-glibc2.31.tgz "unity-p4-plugin-${PLUGIN_VERSION}"
+    - name: Stage macOS Release Files
+      working-directory: ${{ runner.temp }}/stage/bin.macosx1011x86_64
+      env:
+        PLUGIN_VERSION: ${{ inputs.version }}
+      run: |
+        mkdir "unity-p4-plugin-${PLUGIN_VERSION}"
+        cp -rv "$RUNNER_TEMP/unity-p4-plugin-macosx1011x86_64/"* "unity-p4-plugin-${PLUGIN_VERSION}"
+        tar -czf unity-p4-plugin.macosx1011x86_64.tgz "unity-p4-plugin-${PLUGIN_VERSION}"
+    - name: Create Release
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PLUGIN_VERSION: ${{ inputs.version }}
+      run: |
+        gh release create -R "$GITHUB_REPOSITORY" --generate-notes "$PLUGIN_VERSION" "$RUNNER_TEMP/stage/"*/*.{zip,tgz}
