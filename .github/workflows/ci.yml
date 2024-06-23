@@ -43,7 +43,7 @@ jobs:
         $env:INCLUDE += ";$(Resolve-Path 'C:\p4api\win32\p4api-*\include\p4\')"
         $env:LIB += ";$(Resolve-Path 'C:\p4api\win32\p4api-*\lib');${env:ProgramFiles(x86)}\OpenSSL\lib"
 
-        msbuild VersionControl.sln /t:Clean /t:P4Plugin /t:TestServer /p:Configuration=Release /p:Platform=Win32 /p:UseEnv=true
+        perl build.pl
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -70,19 +70,18 @@ jobs:
         tar -C /tmp -xf /tmp/p4api_linux64.tgz
 
         mkdir -p PerforceBinaries/linux64
-        curl -fsSL -o 'PerforceBinaries/linux64/p4d' 'https://ftp.perforce.com/perforce/r24.1/bin.linux26x86_64/p4d'
-        curl -fsSL -o 'PerforceBinaries/linux64/p4' 'https://ftp.perforce.com/perforce/r24.1/bin.linux26x86_64/p4'
+        curl -fsSL -o PerforceBinaries/linux64/p4d 'https://ftp.perforce.com/perforce/r24.1/bin.linux26x86_64/p4d'
+        curl -fsSL -o PerforceBinaries/linux64/p4 'https://ftp.perforce.com/perforce/r24.1/bin.linux26x86_64/p4'
         chmod +x PerforceBinaries/linux64/p4d PerforceBinaries/linux64/p4
     - name: Build
       run: |
         include_dir=(/tmp/p4api-*/include/p4)
         lib_dir=(/tmp/p4api-*/lib)
 
-        export CFLAGS="-O3 -fPIC -fexceptions -fvisibility=hidden -DLINUX -I$include_dir"
-        export CXXFLAGS="$CFLAGS"
+        export CFLAGS="-I$include_dir"
         export LDLIBS="-L$lib_dir"
 
-        make -f Makefile.gnu PLATFORM=linux64
+        perl build.pl
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -109,8 +108,8 @@ jobs:
         tar -C /tmp -xf /tmp/p4api_macos64.tgz
 
         mkdir -p PerforceBinaries/OSX
-        curl -sSL -o 'PerforceBinaries/OSX/p4d' 'https://ftp.perforce.com/perforce/r24.1/bin.macosx12arm64/p4d'
-        curl -sSL -o 'PerforceBinaries/OSX/p4' 'https://ftp.perforce.com/perforce/r24.1/bin.macosx12arm64/p4'
+        curl -sSL -o PerforceBinaries/OSX/p4d 'https://ftp.perforce.com/perforce/r24.1/bin.macosx12arm64/p4d'
+        curl -sSL -o PerforceBinaries/OSX/p4 'https://ftp.perforce.com/perforce/r24.1/bin.macosx12arm64/p4'
         chmod +x PerforceBinaries/OSX/p4d PerforceBinaries/OSX/p4
     - name: Build OpenSSL
       working-directory: /tmp/openssl-1.1.1w
@@ -124,10 +123,9 @@ jobs:
         lib_dir=(/tmp/p4api-*/lib)
 
         export CFLAGS="-I$include_dir"
-        export CXXFLAGS="$CFLAGS"
         export LDLIBS="-L$lib_dir -L/usr/local/ssl/openssl@1.1-x86_64/lib"
 
-        make -f Makefile.osx
+        perl build.pl
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:

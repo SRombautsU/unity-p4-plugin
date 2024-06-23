@@ -1,4 +1,7 @@
-if exist "%PROGRAMFILES%\Microsoft Visual Studio 10.0\Common7\Tools\vsvars32.bat" call "%PROGRAMFILES%\Microsoft Visual Studio 10.0\Common7\Tools\vsvars32.bat"
-if exist "%ProgramFiles(x86)%\Microsoft Visual Studio 10.0\Common7\Tools\vsvars32.bat" call "%ProgramFiles(x86)%\Microsoft Visual Studio 10.0\Common7\Tools\vsvars32.bat"
-if exist "%REALVSPATH%\Common7\Tools\vsvars32.bat" call "%REALVSPATH%\Common7\Tools\vsvars32.bat"
-call msbuild %1 /t:Clean;%2 /p:Configuration=Release;Platform=%3
+if exist "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" (
+    for /f "usebackq delims=" %%i in (`call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -prerelease -latest -find VC\Auxiliary\Build\vcvarsall.bat`) do (
+        call "%%i" x86
+    )
+)
+
+call msbuild VersionControl.sln /t:Clean /p:Configuration=Release /p:Platform=Win32 /p:UseEnv=true %*

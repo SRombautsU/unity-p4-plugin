@@ -7,9 +7,11 @@ AR = ar
 GTK3_INCLUDE = -I/usr/include/gtk-3.0 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/pango-1.0 -I/usr/include/cairo -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/atk-1.0 -I/usr/include/harfbuzz
 GTK3_LIBRARIES = -lgtk-3 -lgdk-3 -lpangocairo-1.0 -lpango-1.0 -latk-1.0 -lcairo-gobject -lcairo -lgdk_pixbuf-2.0 -lgio-2.0 -lgobject-2.0 -lglib-2.0
 
-CXXFLAGS += -fpermissive -Wno-deprecated-declarations $(GTK3_INCLUDE) $(P4PLUGIN_INCLUDE)
+CFLAGS += -O3 -fPIC -fexceptions -fvisibility=hidden -DLINUX
+CXXFLAGS += $(CFLAGS) -fpermissive -Wno-deprecated-declarations $(GTK3_INCLUDE) $(P4PLUGIN_INCLUDE)
 LDFLAGS += -pthread
 LDLIBS += -ldl -lstdc++ -lrt $(GTK3_LIBRARIES)
+PLATFORM ?= linux64
 
 COMMON_MODULES = $(COMMON_SRCS:.c=.o)
 COMMON_MODULES := $(COMMON_MODULES:.cpp=.o)

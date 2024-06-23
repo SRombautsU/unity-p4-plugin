@@ -4,7 +4,7 @@ CC = gcc
 CXX = g++
 AR = ar
 
-CXXFLAGS += -O2 -arch x86_64 -mmacosx-version-min=10.11 -fptrauth-objc-class-ro
+CXXFLAGS += $(CFLAGS) -O2 -arch x86_64 -mmacosx-version-min=10.11 -fptrauth-objc-class-ro
 LDFLAGS += -arch x86_64 -lstdc++ -mmacosx-version-min=10.11 -Wl,-ld_classic
 PLATFORM = OSXx64
 

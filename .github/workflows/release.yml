@@ -37,7 +37,7 @@ jobs:
       run: |
         mkdir "unity-p4-plugin-${PLUGIN_VERSION}"
         cp -rv "$RUNNER_TEMP/unity-p4-plugin-linux26x86_64-glibc2.31/"* "unity-p4-plugin-${PLUGIN_VERSION}"
-        tar -czf unity-p4-plugin.linux26x86_64-glibc2.31.tgz "unity-p4-plugin-${PLUGIN_VERSION}"
+        tar -czf unity-p4-plugin-glibc2.31.linux26x86_64.tgz "unity-p4-plugin-${PLUGIN_VERSION}"
     - name: Stage macOS Release Files
       working-directory: ${{ runner.temp }}/stage/bin.macosx1011x86_64
       env:
