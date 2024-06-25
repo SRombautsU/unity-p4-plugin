@@ -87,6 +87,17 @@ jobs:
       with:
         name: unity-p4-plugin-linux26x86_64-glibc2.31
         path: Build/linux64/PerforcePlugin
+    - name: Scan with Mend
+      env:
+        WS_WSS_URL: https://saas-eu.whitesourcesoftware.com/agent
+        WS_APIKEY: ${{ secrets.MEND_API_KEY }}
+        WS_PRODUCTNAME: unity-p4-plugin
+        WS_PROJECTNAME: unity-p4-plugin
+      run: |
+        curl -fsSLO https://unified-agent.s3.amazonaws.com/wss-unified-agent.jar
+        curl -fsSLO https://unified-agent.s3.amazonaws.com/wss-unified-agent.jar.sha256
+        sha256sum -c wss-unified-agent.jar.sha256
+        java -jar wss-unified-agent.jar -noConfig true
     - name: Test
       run: |
         perl build.pl -test
