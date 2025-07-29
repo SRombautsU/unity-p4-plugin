@@ -25,30 +25,30 @@ if ($clean)
 	rmtree("Release");
 	rmtree("Build");
 	find(\&wanted, "./");
-	sub wanted 
+	sub wanted
 	{
-    	my($filename, $dirs, $suffix) = fileparse($File::Find::name, qr/\.[^.]*/);
+		my($filename, $dirs, $suffix) = fileparse($File::Find::name, qr/\.[^.]*/);
 		if (($suffix eq ".o") or ($suffix eq ".obj"))
 		{
-    		print "delete $File::Find::name","\n";
-    		unlink($_);
+			print "delete $File::Find::name","\n";
+			unlink($_);
 		}
-    }
-    unlink("PerforcePlugin");
+	}
+	unlink("PerforcePlugin");
 	exit 0;
 }
 
 if (not $target)
 {
-	if ($^O eq "darwin") 
+	if ($^O eq "darwin")
 	{
-		$target = "mac";		
+		$target = "mac";
 	}
-	elsif ($^O eq "MSWin32") 
+	elsif ($^O eq "MSWin32")
 	{
 		$target = "win32";
 	}
-	elsif ($^O eq "linux") 
+	elsif ($^O eq "linux")
 	{
 		$target = "linux64";
 	}
@@ -60,7 +60,7 @@ if ($target eq "mac")
 {
 	unless ($test)
 	{
-		BuildMac();	
+		BuildMac();
 	}
 	else
 	{
@@ -71,7 +71,7 @@ elsif ($target eq "win32")
 {
 	unless ($test)
 	{
-		BuildWin32();	
+		BuildWin32();
 	}
 	else
 	{
@@ -89,9 +89,9 @@ elsif ($target eq "linux64")
 		TestLinux ($target);
 	}
 }
-else 
+else
 {
-    die ("Unknown platform");
+	die ("Unknown platform");
 }
 
 sub TestPerforce()
@@ -132,9 +132,9 @@ sub TestMac
 
 sub BuildWin32
 {
-  rmtree("Build");
-  system("msbuilder.cmd", "/t:P4Plugin") && die ("Failed to build PerforcePlugin.exe");
-  system("msbuilder.cmd", "/t:TestServer") && die ("Failed to build TestServer.exe");
+	rmtree("Build");
+	system("msbuilder.cmd", "/t:P4Plugin") && die ("Failed to build PerforcePlugin.exe");
+	system("msbuilder.cmd", "/t:TestServer") && die ("Failed to build TestServer.exe");
 }
 
 sub TestWin32
