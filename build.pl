@@ -114,7 +114,7 @@ sub TestPerforce()
 sub BuildMac
 {
 	rmtree("Build");
-	system("make" , "-f", "Makefile.osx", "all") && die ("Failed to build version control plugins");
+	system("make" , "-f", "Makefile.osx", "all") && die ("Failed to build PerforcePlugin for macOS");
 }
 
 sub TestMac
@@ -149,16 +149,13 @@ sub TestWin32
 
 sub BuildLinux ($)
 {
-	my $platform = shift;
 
 	system ('make', '-f', 'Makefile.gnu', 'clean');
-	system ('make', '-f', 'Makefile.gnu') && die ("Failed to build $platform");
+	system ('make', '-f', 'Makefile.gnu') && die ("Failed to build PerforcePlugin for linux64");
 }
 
 sub TestLinux ($)
 {
-	my $platform = shift;
-
 	$ENV{'P4DEXEC'} = "PerforceBinaries/linux64/p4d";
 	$ENV{'P4EXEC'} = "PerforceBinaries/linux64/p4";
 	$ENV{'P4PLUGIN'} = "Build/linux64/PerforcePlugin";
