@@ -73,10 +73,6 @@ jobs:
       run: |
         set -x
 
-        curl -sSL -o /tmp/openssl.tar.gz 'https://www.openssl.org/source/old/1.1.1/openssl-1.1.1w.tar.gz'
-        shasum -a 256 -c <<<'cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8 */tmp/openssl.tar.gz'
-        tar -C /tmp -xf /tmp/openssl.tar.gz
-
         curl -fsSL -o /tmp/p4api_linux64.tgz 'https://ftp.perforce.com/perforce/r24.2/bin.linux26x86_64/p4api-glibc2.12-openssl1.1.1.tgz'
         tar -C /tmp -xf /tmp/p4api_linux64.tgz
 
@@ -84,17 +80,6 @@ jobs:
         curl -fsSL -o PerforceBinaries/linux64/p4d 'https://ftp.perforce.com/perforce/r24.2/bin.linux26x86_64/p4d'
         curl -fsSL -o PerforceBinaries/linux64/p4 'https://ftp.perforce.com/perforce/r24.2/bin.linux26x86_64/p4'
         chmod +x PerforceBinaries/linux64/p4d PerforceBinaries/linux64/p4
-    - name: Build OpenSSL
-      working-directory: /tmp/openssl-1.1.1w
-      run: |
-        perl Configure no-shared no-tests linux-x86_64
-        make depend
-        sudo make install_sw
-    - name: Upload OpenSSL Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: unity-p4-plugin-linux26x86_64-openssl
-        path: /tmp/openssl-1.1.1w/*.a
     - name: Build
       run: |
         include_dir=(/tmp/p4api-*/include/p4)
