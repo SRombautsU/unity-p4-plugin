@@ -18,13 +18,13 @@ jobs:
         sha256sum -c <<<'cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8 *C:\openssl.tar.gz'
         (cd 'C:\'; tar --force-local -xf 'C:\openssl.tar.gz')
 
-        curl -fsSL -o 'C:\p4api_win32.zip' 'https://ftp.perforce.com/perforce/r24.1/bin.ntx86/p4api_vs2022_static_openssl1.1.1.zip'
+        curl -fsSL -o 'C:\p4api_win32.zip' 'https://ftp.perforce.com/perforce/r24.2/bin.ntx86/p4api_vs2022_static_openssl1.1.1.zip'
         mkdir -p 'C:\p4api\win32'
         (cd 'C:\p4api\win32'; unzip -q 'C:\p4api_win32.zip')
 
         mkdir -p 'PerforceBinaries\Win_x64'
-        curl -fsSL -o 'PerforceBinaries\Win_x64\p4d.exe' 'https://ftp.perforce.com/perforce/r24.1/bin.ntx64/p4d.exe'
-        curl -fsSL -o 'PerforceBinaries\Win_x64\p4.exe' 'https://ftp.perforce.com/perforce/r24.1/bin.ntx64/p4.exe'
+        curl -fsSL -o 'PerforceBinaries\Win_x64\p4d.exe' 'https://ftp.perforce.com/perforce/r24.2/bin.ntx64/p4d.exe'
+        curl -fsSL -o 'PerforceBinaries\Win_x64\p4.exe' 'https://ftp.perforce.com/perforce/r24.2/bin.ntx64/p4.exe'
       shell: bash
     - name: Set Up Developer Command Prompt
       uses: ilammy/msvc-dev-cmd@v1
@@ -77,12 +77,12 @@ jobs:
         shasum -a 256 -c <<<'cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8 */tmp/openssl.tar.gz'
         tar -C /tmp -xf /tmp/openssl.tar.gz
 
-        curl -fsSL -o /tmp/p4api_linux64.tgz 'https://ftp.perforce.com/perforce/r24.1/bin.linux26x86_64/p4api-glibc2.12-openssl1.1.1.tgz'
+        curl -fsSL -o /tmp/p4api_linux64.tgz 'https://ftp.perforce.com/perforce/r24.2/bin.linux26x86_64/p4api-glibc2.12-openssl1.1.1.tgz'
         tar -C /tmp -xf /tmp/p4api_linux64.tgz
 
         mkdir -p PerforceBinaries/linux64
-        curl -fsSL -o PerforceBinaries/linux64/p4d 'https://ftp.perforce.com/perforce/r24.1/bin.linux26x86_64/p4d'
-        curl -fsSL -o PerforceBinaries/linux64/p4 'https://ftp.perforce.com/perforce/r24.1/bin.linux26x86_64/p4'
+        curl -fsSL -o PerforceBinaries/linux64/p4d 'https://ftp.perforce.com/perforce/r24.2/bin.linux26x86_64/p4d'
+        curl -fsSL -o PerforceBinaries/linux64/p4 'https://ftp.perforce.com/perforce/r24.2/bin.linux26x86_64/p4'
         chmod +x PerforceBinaries/linux64/p4d PerforceBinaries/linux64/p4
     - name: Build OpenSSL
       working-directory: /tmp/openssl-1.1.1w
@@ -137,12 +137,12 @@ jobs:
         shasum -a 256 -c <<<'cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8 */tmp/openssl.tar.gz'
         tar -C /tmp -xf /tmp/openssl.tar.gz
 
-        curl -sSL -o /tmp/p4api_macos64.tgz 'https://ftp.perforce.com/perforce/r24.1/bin.macosx105x86_64/p4api-openssl1.1.1.tgz'
+        curl -sSL -o /tmp/p4api_macos64.tgz 'https://ftp.perforce.com/perforce/r24.2/bin.macosx105x86_64/p4api-openssl1.1.1.tgz'
         tar -C /tmp -xf /tmp/p4api_macos64.tgz
 
         mkdir -p PerforceBinaries/OSX
-        curl -sSL -o PerforceBinaries/OSX/p4d 'https://ftp.perforce.com/perforce/r24.1/bin.macosx12arm64/p4d'
-        curl -sSL -o PerforceBinaries/OSX/p4 'https://ftp.perforce.com/perforce/r24.1/bin.macosx12arm64/p4'
+        curl -sSL -o PerforceBinaries/OSX/p4d 'https://ftp.perforce.com/perforce/r24.2/bin.macosx12arm64/p4d'
+        curl -sSL -o PerforceBinaries/OSX/p4 'https://ftp.perforce.com/perforce/r24.2/bin.macosx12arm64/p4'
         chmod +x PerforceBinaries/OSX/p4d PerforceBinaries/OSX/p4
     - name: Build OpenSSL x86_64
       working-directory: /tmp/openssl-1.1.1w
@@ -186,12 +186,12 @@ jobs:
           shasum -a 256 -c <<<'cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8 */tmp/openssl.tar.gz'
           tar -C /tmp -xf /tmp/openssl.tar.gz
           
-          curl -sSL -o /tmp/p4api_macos64.tgz 'https://ftp.perforce.com/perforce/r24.1/bin.macosx12arm64/p4api-openssl1.1.1.tgz'
+          curl -sSL -o /tmp/p4api_macos64.tgz 'https://ftp.perforce.com/perforce/r24.2/bin.macosx12arm64/p4api-openssl1.1.1.tgz'
           tar -C /tmp -xf /tmp/p4api_macos64.tgz
           
           mkdir -p PerforceBinaries/OSX
-          curl -sSL -o PerforceBinaries/OSX/p4d 'https://ftp.perforce.com/perforce/r24.1/bin.macosx12arm64/p4d'
-          curl -sSL -o PerforceBinaries/OSX/p4 'https://ftp.perforce.com/perforce/r24.1/bin.macosx12arm64/p4'
+          curl -sSL -o PerforceBinaries/OSX/p4d 'https://ftp.perforce.com/perforce/r24.2/bin.macosx12arm64/p4d'
+          curl -sSL -o PerforceBinaries/OSX/p4 'https://ftp.perforce.com/perforce/r24.2/bin.macosx12arm64/p4'
           chmod +x PerforceBinaries/OSX/p4d PerforceBinaries/OSX/p4
       - name: Build OpenSSL arm64
         working-directory: /tmp/openssl-1.1.1w
