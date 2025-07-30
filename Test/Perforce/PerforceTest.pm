@@ -12,10 +12,11 @@ BEGIN {
 
 sub PerforceIntegrationTests
 {
-	$dir = $_[0];
-	$p4port = $_[1];
-	$option = $_[2];
-	$filter = $_[3];
+	$suite = $_[0];
+	$dir = $_[1];
+	$p4port = $_[2];
+	$option = $_[3];
+	$filter = $_[4];
 	$mfa = index($dir, "MultiFactorAuthentication") > -1;
 	$devnull = "> /dev/null 2>&1";
 
@@ -25,11 +26,11 @@ sub PerforceIntegrationTests
 	if ($filter ne ""
 		&& index($filter, $dir) == -1)
 	{
-		print "Not Running Perforce Integration Tests in dir:'",$dir,"' p4port:'",$p4port,"' (Not included in filter).\n";
-		return 0;	
+		print "\n[$suite] '",$dir,"' Perforce Integration Tests Ignored (p4port:'",$p4port,"') (Not included in filter).\n";
+		return 0;
 	}
 
-	print "Running Perforce Integration Tests in dir:'",$dir,"' p4port:'",$p4port,"'\n";
+	print "\n\n[$suite] '",$dir,"' Perforce Integration Tests Running (p4port:'",$p4port,"')\n";
 
 	rmtree("Test/tmp");
 	mkdir "Test/tmp";
@@ -44,7 +45,7 @@ sub PerforceIntegrationTests
 	$ENV{'P4CHARSET'} = 'utf8';
 	$ENV{'VCS_P4PASSWD'} = 'Secret';
 	$ENV{'P4EXECABS'} = getcwd() . "/" . $ENV{'P4EXEC'};
-	
+
 	if ($ENV{'TARGET'} eq "win32")
 	{
 		$ENV{'VCS_P4ROOT'} =~ s/\//\\/g;
@@ -73,7 +74,7 @@ sub PerforceIntegrationTests
 	# print "Press ENTER to continue...";
 	# <STDIN>;
 
-	$exitCode = RunTests($dir, $option, $filter);
+	$exitCode = RunTests($suite, $dir, $option, $filter);
 
 	# print "Press ENTER to continue...";
 	# <STDIN>;
@@ -85,14 +86,18 @@ sub PerforceIntegrationTests
 
 sub RunTests()
 {
-	$dir = $_[0];
-	$option = $_[1];
-	$filter = $_[2];
+	$suite = $_[0];
+	$dir = $_[1];
+	$option = $_[2];
+	$filter = $_[3];
 
 	@files = <Test/$dir/*.txt>;
 
-	$total = 0;
+	$total = @files;
+	$count = 0;
 	$success = 0;
+	$failed = 0;
+	$ignored = 0;
 
 	$pluginexec = abs_path($ENV{'P4PLUGIN'});
 	$testserver = abs_path($ENV{'TESTSERVER'});
@@ -100,19 +105,21 @@ sub RunTests()
 
 	if (not(-e -f -x $testserver))
 	{
-		print "Error testserver '$testserver' doesn't exist\n";
-		return 1;
+		print "\n[$suite][$count/$total] Error testserver '$testserver' doesn't exist\n\n";
+		return $total;
 	}
 
 	$cwd = getcwd();
 	foreach $i (@files) {
-		if ($filter ne "" 
+		$count++;
+		if ($filter ne ""
 			&& index($i, $filter) == -1)
 		{
-			print "Not running Perforce Integration Tests in file:'",$i,"' p4port:'",$p4port,"'\n";
+			$ignored++;
+			print "\n[$suite][$count/$total] '",$i,"' Ignored (p4port:'",$p4port,"')\n";
 			next;
 		}
-		print "Running Perforce Integration Tests in file:'",$i,"' p4port:'",$p4port,"'\n";
+		print "\n[$suite][$count/$total] '",$i,"' Running (p4port:'",$p4port,"')\n";
 		chdir $cwd;
 		rmtree( $clientroot, {keep_root => 1} );
 		print "Changing working directory to: '", $clientroot,"'\n";
@@ -129,21 +136,29 @@ sub RunTests()
 		}
 		elsif ($? == -1)
 		{
-			print "Error running test '$i' : $!\n";
+			print "\n[$suite][$count/$total] '",$i,"' Error running test: $!\n\n";
 			chdir $cwd;
 			return 1;
 		}
 		else
 		{
-			print "Test failed -> stopping all tests\n";
-			chdir $cwd;
-			return 1;
+			print "\n[$suite][$count/$total] '",$i,"' Failed (p4port:'",$p4port,"')\n\n";
+			$failed++;
 		}
-		$total++;
 		RemoveExclusiveFile();
 	}
-	print "Done: $success of $total tests passed.\n";
 	chdir $cwd;
+	if ($ignored > 0)
+	{
+		print "[$suite] $ignored of $total tests ignored.\n";
+	}
+	if ($failed > 0)
+	{
+		print "[$suite] Failed: $failed of $total tests failed.\n";
+		print "[$suite]         $success of $total tests passed.\n";
+		return $failed;
+	}
+	print "[$suite] Success: $success of $total tests passed.\n";
 	return 0;
 }
 
@@ -160,7 +175,7 @@ sub AddExclusiveFile
 	open(FH, '>', 'Assets/exclusivefile.txt') or die $!;
 	print(FH 'File with exclusive open file type modifier.');
 	close(FH) or die $1;
-	
+
 	RunCommand('add -t text+l Assets/exclusivefile.txt');
 	RunCommand('submit -d "Add Assets/exclusivefile.txt." Assets/exclusivefile.txt');
 }
@@ -173,7 +188,7 @@ sub RemoveExclusiveFile
 
 sub SetupServer
 {
-	$root = $ENV{'VCS_P4ROOT'}; 
+	$root = $ENV{'VCS_P4ROOT'};
 	my $p4port = $ENV{'VCS_P4PORT'};
 	print "Setting server in '$root' listening on port '$p4port'\n";
 	rmtree($root);
@@ -190,6 +205,7 @@ sub SetupServer
 	}
 
 	my $p4d = $ENV{'P4DEXEC'};
+	print "Starting server '$p4d'\n";
 	system("$p4d -xi -r \"$root\"");
 	my $pidfile = getcwd() . "/server.pid";
 	my $pid = SpawnSubProcess($p4d, " -r \"$root\" -p $p4port --pid-file=$pidfile");
@@ -288,9 +304,9 @@ Update: 2022/07/20 11:40:48
 
 Access: 2022/07/20 11:40:48
 
-FullName:       Multi Factor Authentication
+FullName:	   Multi Factor Authentication
 
-Password:       ******
+Password:	   ******
 
 AuthMethod:		perforce+2fa
 EOF
@@ -313,9 +329,9 @@ sub SetupMFATriggers
 	$TRIGGERS =<<EOF;
 
 Triggers:
-    test-pre-2fa auth-pre-2fa auth "$mfa_script -t pre-2fa -e %quote%%email%%quote% -u %user% -h %host%"
-    test-init-2fa auth-init-2fa auth "$mfa_script -t init-2fa -e %quote%%email%%quote% -u %user% -h %host% -m %method%"
-    test-check-2fa auth-check-2fa auth "$mfa_script -t check-2fa -e %quote%%email%%quote% -u %user% -h %host% -s %scheme% -k %token%"
+	test-pre-2fa auth-pre-2fa auth "$mfa_script -t pre-2fa -e %quote%%email%%quote% -u %user% -h %host%"
+	test-init-2fa auth-init-2fa auth "$mfa_script -t init-2fa -e %quote%%email%%quote% -u %user% -h %host% -m %method%"
+	test-check-2fa auth-check-2fa auth "$mfa_script -t check-2fa -e %quote%%email%%quote% -u %user% -h %host% -s %scheme% -k %token%"
 EOF
 
 	open(FD, "| $ENV{'P4EXEC'} -p $ENV{'VCS_P4PORT'} -u mfa_test_user -P Mfau1111 triggers -i ");
@@ -341,7 +357,7 @@ Update:2013/02/19 09:13:18
 Access:2013/06/24 12:38:18
 
 Description:
-    Created by $ENV{'VCS_P4USER'}.
+	Created by $ENV{'VCS_P4USER'}.
 
 Root:$root
 
@@ -352,8 +368,8 @@ SubmitOptions:submitunchanged
 LineEnd:local
 
 View:
-    //depot/... //$ENV{'VCS_P4CLIENT'}/...
-    -//depot/Assets/excludedfile.txt  //$ENV{'VCS_P4CLIENT'}/Assets/excludedfile.txt
+	//depot/... //$ENV{'VCS_P4CLIENT'}/...
+	-//depot/Assets/excludedfile.txt  //$ENV{'VCS_P4CLIENT'}/Assets/excludedfile.txt
 EOF
 
 	open(FD, "| $ENV{'P4EXEC'} -p $ENV{'VCS_P4PORT'} -u vcs_test_user client -i ");

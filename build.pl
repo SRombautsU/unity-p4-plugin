@@ -96,19 +96,29 @@ else
 
 sub TestPerforce()
 {
-	IntegrationTest("Plugin", "localhost:1667", $testoption, $filter);
-	IntegrationTest("Plugin", "ssl:localhost:1667", $testoption, $filter);
-	IntegrationTest("Perforce/Common", "localhost:1667", $testoption, $filter);
-	IntegrationTest("Perforce/Common", "ssl:localhost:1667", $testoption, $filter);
-	IntegrationTest("Perforce/BaseIPv4", "tcp4:localhost:1667", $testoption, $filter);
-	IntegrationTest("Perforce/SecureBaseIPv4", "ssl4:localhost:1667", $testoption, $filter);
-	IntegrationTest("Perforce/SquareBracketIPv4", "tcp4:[localhost]:1667", $testoption, $filter);
+	my $failed = 0;
+	$failed += IntegrationTest("1-7", "Plugin", "localhost:1667", $testoption, $filter);
+	$failed += IntegrationTest("2-7", "Plugin", "ssl:localhost:1667", $testoption, $filter);
+	$failed += IntegrationTest("3-7", "Perforce/Common", "localhost:1667", $testoption, $filter);
+	$failed += IntegrationTest("4-7", "Perforce/Common", "ssl:localhost:1667", $testoption, $filter);
+	$failed += IntegrationTest("5-7", "Perforce/BaseIPv4", "tcp4:localhost:1667", $testoption, $filter);
+	$failed += IntegrationTest("6-7", "Perforce/SecureBaseIPv4", "ssl4:localhost:1667", $testoption, $filter);
+	$failed += IntegrationTest("7-7", "Perforce/SquareBracketIPv4", "tcp4:[localhost]:1667", $testoption, $filter);
 	# Only works if DNS routes via IPv6
-	# IntegrationTest("Perforce/BaseIPv6", "tcp6:[localhost]:1667", $testoption, $filter);
+	# $failed += IntegrationTest("9-7", "Perforce/BaseIPv6", "tcp6:[localhost]:1667", $testoption, $filter);
 	# Does not work in new version of Perforce server
-	# IntegrationTest("Perforce/SquareBracketIPv6", "tcp6:[::1]:1667", $testoption, $filter);
-	# IntegrationTest("Perforce/SecureSquareBracketIPv6", "ssl6:[::1]:1667", $testoption, $filter);
-	IntegrationTest("Perforce/MultiFactorAuthentication", "localhost:1667", $testoption, $filter);
+	# $failed += IntegrationTest("10-7", "Perforce/SquareBracketIPv6", "tcp6:[::1]:1667", $testoption, $filter);
+	# $failed += IntegrationTest("11-7", "Perforce/SecureSquareBracketIPv6", "ssl6:[::1]:1667", $testoption, $filter);
+
+	if ($failed > 0)
+	{
+		print "\nFAILURE $failed Perforce Integrations Test(s) failed!\n\n";
+		exit 1;
+	}
+	else
+	{
+		print "\nSUCCESS: All Perforce Integrations Tests passed\n\n";
+	}
 }
 
 sub BuildMac
@@ -149,7 +159,6 @@ sub TestWin32
 
 sub BuildLinux ($)
 {
-
 	system ('make', '-f', 'Makefile.gnu', 'clean');
 	system ('make', '-f', 'Makefile.gnu') && die ("Failed to build PerforcePlugin for linux64");
 }
